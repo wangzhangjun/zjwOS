@@ -35,5 +35,5 @@ arm-none-eabi-gcc -static -nostartfiles -nostdlib -Tlink.lds -Ttext 30000000  in
 arm-none-eabi-objcopy -O binary zjwos.elf zjwos.bin
 
 skyeye:
-会看到hello wzjos
+hello wzjos
 */
