@@ -31,8 +31,8 @@ arm-none-eabi-gcc -O2 -g -c init.s
 arm-none-eabi-gcc -O2 -g -c start.s
 arm-none-eabi-gcc -O2 -g -c boot.c
 arm-none-eabi-gcc -O2 -g -c abnormal.s
-arm-none-eabi-gcc -static -nostartfiles -nostdlib -Tleeos.lds -Ttext 30000000  init.o start.o boot.o abnormal.o -o leeos.elf -lgcc
-arm-none-eabi-objcopy -O binary leeos.elf leeos.bin
+arm-none-eabi-gcc -static -nostartfiles -nostdlib -Tlink.lds -Ttext 30000000  init.o start.o boot.o abnormal.o -o zjwos.elf -lgcc
+arm-none-eabi-objcopy -O binary zjwos.elf zjwos.bin
 
 skyeye:
 会看到hello wzjos

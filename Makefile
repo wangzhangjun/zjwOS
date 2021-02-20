@@ -4,7 +4,7 @@ OBJCOPY=arm-none-eabi-objcopy
 
 CFLAGS= -O2 -g
 ASFLAGS= -O2 -g
-LDFLAGS=-Tleeos.lds -Ttext 30000000 
+LDFLAGS=-Tlink.lds -Ttext 30000000 
 
 OBJS=init.o start.o boot.o abnormal.o
 
@@ -13,9 +13,9 @@ OBJS=init.o start.o boot.o abnormal.o
 .s.o:
 	$(CC) $(ASFLAGS) -c $<
 
-leeos.elf:$(OBJS)
+zjwos.elf:$(OBJS)
 	$(CC) -static -nostartfiles -nostdlib $(LDFLAGS) $? -o $@ -lgcc
-	$(OBJCOPY) -O binary $@ leeos.bin
+	$(OBJCOPY) -O binary $@ zjwos.bin
 
 clean:
-	rm *.o leeos.elf leeos.bin -f
+	rm *.o zjwos.elf zjwos.bin -f
