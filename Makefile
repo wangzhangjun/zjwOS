@@ -6,7 +6,7 @@ CFLAGS= -O2 -g
 ASFLAGS= -O2 -g
 LDFLAGS=-Tlink.lds -Ttext 30000000 
 
-OBJS=init.o start.o boot.o abnormal.o
+OBJS=init.o start.o boot.o abnormal.o mmu.o
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
