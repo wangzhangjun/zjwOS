@@ -6,3 +6,6 @@ __vector_reset定义在init.s中，会完成堆栈以及bss段的初始化。完
 
 #### 2. MMU
 在mmu.c中的init_sys_mmu完成页表项的初始化，即指明了页表基地址从哪里开始，以及每个页表项的内容等。start_mmu函数中完成对cp15协处理的处理化，激活MMU。test_mmu主要是把一个虚拟地址映射到了物理串口地址，来测试mmu的生效。
+
+#### 3.打印函数
+在boot.c中调用print.c中的printk函数，会测试打印的输出，还是输出到串口

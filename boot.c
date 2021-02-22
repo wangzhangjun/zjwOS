@@ -4,6 +4,7 @@ typedef void (*init_func)(void);
 
 extern void init_sys_mmu();
 extern void start_mmu();
+extern void test_printk(void);
 
 void helloworld(void)
 {
@@ -36,6 +37,7 @@ void plat_boot(void)
 	init_sys_mmu();
 	start_mmu();
 	test_mmu();
+	test_printk();
 	while(1);
 }
 /*
