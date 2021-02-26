@@ -18,6 +18,9 @@
 #define VIRTUAL_IO_ADDR 0xc8000000
 #define IO_MAP_SIZE 0x18000000
 
+#define VIRTUAL_VECTOR_ADDR 0x0
+#define PHYSICAL_VECTOR_ADDR 0x30000000
+
 void start_mmu(void)
 {
     unsigned int ttb = L1_PTR_BASE_ADDR;
@@ -53,6 +56,17 @@ void init_sys_mmu(void)
     unsigned int pte;
     unsigned int pte_addr;
     int j;
+    
+    //for interrupt
+    for (j = 0; j < MEM_MAP_SIZE >> 20; j++)
+    {
+        pte = gen_l1_pte(PHYSICAL_VECTOR_ADDR + (j << 20));
+        pte |= PTE_ALL_AP_L1_SECTION_DEFAULT;
+        pte |= PTE_L1_SECTION_NO_CACHE_AND_WB;
+        pte |= PTE_L1_SECTION_DOMAIN_DEFAULT;
+        pte_addr = gen_l1_pte_addr(L1_PTR_BASE_ADDR, VIRTUAL_VECTOR_ADDR + (j << 20));
+        *(volatile unsigned int *)pte_addr = pte;
+    }
 
     for (j = 0; j < MEM_MAP_SIZE >> 20; j++)
     {

@@ -5,6 +5,30 @@ typedef void (*init_func)(void);
 extern void init_sys_mmu();
 extern void start_mmu();
 extern void test_printk(void);
+extern void umask_int(unsigned int);
+extern void enable_irq(void);
+
+#define TIMER_BASE (0xd1000000)
+#define TCFG0 ((volatile unsigned int *)(TIMER_BASE + 0x0))
+#define TCFG1 ((volatile unsigned int *)(TIMER_BASE + 0x4))
+#define TCON ((volatile unsigned int *)(TIMER_BASE + 0x8))
+#define TCONB4 ((volatile unsigned int *)(TIMER_BASE + 0x3c))
+
+void timer_init(void)
+{
+	*TCFG0 |= 0x800;
+	*TCON &= (~(7 << 20));
+	*TCON |= (1 << 22);
+	*TCON |= (1 << 21);
+
+	*TCONB4 = 10000;
+
+	*TCON |= (1 << 20);
+	*TCON &= ~(1 << 21);
+
+	umask_int(14);
+	enable_irq();
+}
 
 void helloworld(void)
 {
@@ -38,6 +62,7 @@ void plat_boot(void)
 	start_mmu();
 	test_mmu();
 	test_printk();
+	timer_init();
 	while(1);
 }
 /*
