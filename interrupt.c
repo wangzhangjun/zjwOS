@@ -16,6 +16,16 @@ void enable_irq(void)
     );
 }
 
+void disable_irq(void)
+{
+    asm volatile(
+        "mrs r4,cpsr\n\t"
+        "orr r4,r4,#0x80\n\t"
+        "msr cpsr,r4\n\t" ::
+            : "r4"
+    );
+}
+
 void umask_int(unsigned int offset)
 {
     *(volatile unsigned int *)INTMSK &= ~(1 << offset);
@@ -27,5 +37,7 @@ void common_irq_handler(void)
     printk("%d\t", *(volatile unsigned int *)INTOFFSET);
     *(volatile unsigned int *)SRCPND |= tmp;
     *(volatile unsigned int *)INTPND |= tmp;
-    printk("timer interrupt occured\n");
+    enable_irq();
+    printk("interrupt occured\n");
+    disable_irq();
 }
