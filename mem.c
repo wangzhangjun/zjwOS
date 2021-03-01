@@ -109,6 +109,17 @@ static inline int list_empty(const struct list_head *head)
 #define PAGE_BUDDY_BUSY 0x04
 #define PAGE_IN_CACHE 0x08
 
+struct kmem_cache
+{
+    unsigned int obj_size;
+    unsigned int obj_nr;
+    unsigned int page_order;
+    unsigned int flags;
+    struct page *head_page;
+    struct page *end_page;
+    void *nf_block;
+};
+
 struct page
 {
     unsigned int vaddr;
@@ -311,4 +322,158 @@ void *get_free_pages(unsigned int flag, int order)
 void put_free_pages(void *addr, int order)
 {
     free_pages(virt_to_page((unsigned int)addr), order);
+}
+
+#define KMEM_CACHE_DEFAULT_ORDER (0)
+#define KMEM_CACHE_MAX_ORDER (5) //cache can deal with the memory no less than 32*PAGE_SIZE
+#define KMEM_CACHE_SAVE_RATE (0x5a)
+#define KMEM_CACHE_PERCENT (0x64)
+#define KMEM_CACHE_MAX_WAST (PAGE_SIZE - KMEM_CACHE_SAVE_RATE * PAGE_SIZE / KMEM_CACHE_PERCENT)
+
+int find_right_order(unsigned int size)
+{
+    int order;
+    for (order = 0; order <= KMEM_CACHE_MAX_ORDER; order++)
+    {
+        if (size <= (KMEM_CACHE_MAX_WAST) * (1 << order))
+        {
+            return order;
+        }
+    }
+    if (size > (1 << order))
+        return -1;
+    return order;
+}
+
+int kmem_cache_line_object(void *head, unsigned int size, int order)
+{
+    void **pl;
+    char *p;
+    pl = (void **)head;
+    p = (char *)head + size;
+    int i, s = PAGE_SIZE * (1 << order);
+    for (i = 0; s > size; i++, s -= size)
+    {
+        *pl = (void *)p;
+        pl = (void **)p;
+        p = p + size;
+    }
+    if (s == size)
+        i++;
+    return i;
+}
+
+struct kmem_cache *kmem_cache_create(struct kmem_cache *cache, unsigned int size, unsigned int flags)
+{
+    void **nf_block = &(cache->nf_block);
+
+    int order = find_right_order(size);
+    if (order == -1)
+        return NULL;
+    if ((cache->head_page = alloc_pages(0, order)) == NULL)
+        return NULL;
+    *nf_block = page_address(cache->head_page);
+
+    cache->obj_nr = kmem_cache_line_object(*nf_block, size, order);
+    cache->obj_size = size;
+    cache->page_order = order;
+    cache->flags = flags;
+    cache->end_page = BUDDY_END(cache->head_page, order);
+    cache->end_page->list.next = NULL;
+
+    return cache;
+}
+
+/*FIXME:I dont understand it now*/
+void kmem_cache_destroy(struct kmem_cache *cache)
+{
+    int order = cache->page_order;
+    struct page *pg = cache->head_page;
+    struct list_head *list;
+    while (1)
+    {
+        list = BUDDY_END(pg, order)->list.next;
+        free_pages(pg, order);
+        if (list)
+        {
+            pg = list_entry(list, struct page, list);
+        }
+        else
+        {
+            return;
+        }
+    }
+}
+
+void kmem_cache_free(struct kmem_cache *cache, void *objp)
+{
+    *(void **)objp = cache->nf_block;
+    cache->nf_block = objp;
+    cache->obj_nr++;
+}
+
+void *kmem_cache_alloc(struct kmem_cache *cache, unsigned int flag)
+{
+    void *p;
+    struct page *pg;
+    if (cache == NULL)
+        return NULL;
+    void **nf_block = &(cache->nf_block);
+    unsigned int *nr = &(cache->obj_nr);
+    int order = cache->page_order;
+
+    if (!*nr)
+    {
+        if ((pg = alloc_pages(0, order)) == NULL)
+            return NULL;
+        *nf_block = page_address(pg);
+        cache->end_page->list.next = &pg->list;
+        cache->end_page = BUDDY_END(pg, order);
+        cache->end_page->list.next = NULL;
+        *nr += kmem_cache_line_object(*nf_block, cache->obj_size, order);
+    }
+
+    (*nr)--;
+    p = *nf_block;
+    *nf_block = *(void **)p;
+    pg = virt_to_page((unsigned int)p);
+    pg->cachep = cache; //doubt it???
+    return p;
+}
+
+#define KMALLOC_BIAS_SHIFT (5) //32byte minimal
+#define KMALLOC_MAX_SIZE (4096)
+#define KMALLOC_MINIMAL_SIZE_BIAS (1 << (KMALLOC_BIAS_SHIFT))
+#define KMALLOC_CACHE_SIZE (KMALLOC_MAX_SIZE / KMALLOC_MINIMAL_SIZE_BIAS)
+
+struct kmem_cache kmalloc_cache[KMALLOC_CACHE_SIZE] = {
+    {0, 0, 0, 0, NULL, NULL, NULL},
+};
+#define kmalloc_cache_size_to_index(size) ((((size)) >> (KMALLOC_BIAS_SHIFT)))
+
+int kmalloc_init(void)
+{
+    int i = 0;
+
+    for (i = 0; i < KMALLOC_CACHE_SIZE; i++)
+    {
+        if (kmem_cache_create(&kmalloc_cache[i], (i + 1) * KMALLOC_MINIMAL_SIZE_BIAS, 0) == NULL)
+            return -1;
+    }
+    return 0;
+}
+
+void *kmalloc(unsigned int size)
+{
+    int index = kmalloc_cache_size_to_index(size);
+    if (index >= KMALLOC_CACHE_SIZE)
+        return NULL;
+    return kmem_cache_alloc(&kmalloc_cache[index], 0);
+}
+
+void kfree(void *addr)
+{
+    struct page *pg;
+    pg = virt_to_page((unsigned int)addr);
+    kmem_cache_free(pg->cachep, addr);
 }
