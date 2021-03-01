@@ -71,15 +71,15 @@ void plat_boot(void)
 	init_page_map();
 	char *p1, *p2, *p3, *p4;
 	p1 = (char *)get_free_pages(0, 6);
-	printk("6.1_the return address of get_free_pages %x\n", p1);
+	printk("buddy return address of get_free_pages %x\n", p1);
 	p2 = (char *)get_free_pages(0, 6);
-	printk("6.1_the return address of get_free_pages %x\n", p2);
+	printk("buddy return address of get_free_pages %x\n", p2);
 	put_free_pages(p2, 6);
 	put_free_pages(p1, 6);
 	p3 = (char *)get_free_pages(0, 7);
-	printk("6.1_the return address of get_free_pages %x\n", p3);
+	printk("buddy return address of get_free_pages %x\n", p3);
 	p4 = (char *)get_free_pages(0, 7);
-	printk("6.1_the return address of get_free_pages %x\n", p4);
+	printk("buddy return address of get_free_pages %x\n", p4);
 
 	while(1);
 }
