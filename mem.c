@@ -162,9 +162,9 @@ void init_page_map(void)
     int i;
     struct page *pg = (struct page *)KERNEL_PAGE_START;
     init_page_buddy();
-    // printk("KERNEL_PAGE_NUM:%d\n", KERNEL_PAGE_NUM);  //1541
-    // printk("PAGE_NUM_FOR_MAX_BUDDY:%d\n", ~PAGE_NUM_FOR_MAX_BUDDY);
-    // printk("page_buddy[8]中的page个数:%d\n", (KERNEL_PAGE_NUM & (~PAGE_NUM_FOR_MAX_BUDDY))); //1536, 这个数字的含义是，1541/256,即256（2的8次方）是一个buddy，一共可以分到1526就不够了
+    printk("KERNEL_PAGE_NUM:%d\n", KERNEL_PAGE_NUM);  //1541
+    printk("PAGE_NUM_FOR_MAX_BUDDY:%d\n", ~PAGE_NUM_FOR_MAX_BUDDY);                          // -512
+    printk("page_buddy[8]中的page个数:%d\n", (KERNEL_PAGE_NUM & (~PAGE_NUM_FOR_MAX_BUDDY))); //1536, 这个数字的含义是，1541/256,即256（2的8次方）是一个buddy，一共可以分到1526就不够了
     for (i = 0; i < (KERNEL_PAGE_NUM); pg++, i++)
     {
         /*fill struct page first*/
@@ -173,18 +173,18 @@ void init_page_map(void)
         pg->counter = 0;
         INIT_LIST_HEAD(&(pg->list));
 
-        /*i< 1536. 前1536个page全部挂在了8号数组上*/
+        /* i< 1536. 前1536个page全部挂在了8号数组上 */
         if (i < (KERNEL_PAGE_NUM & (~PAGE_NUM_FOR_MAX_BUDDY)))
         {
             // printk("in if buddy :%d\n", MAX_BUDDY_PAGE_NUM - 1);  //一直都是8
             /*the following code should be dealt carefully,we would change the order field of a head struct page to the corresponding order,and change others to -1*/
-            if ((i & PAGE_NUM_FOR_MAX_BUDDY) == 0)
+            if ((i & PAGE_NUM_FOR_MAX_BUDDY) == 0) //i & 511(111111111) ,只有当i为0的时候，整个才为0，0也表示第一个page的分配
             {
-                pg->order = MAX_BUDDY_PAGE_NUM - 1;
+                pg->order = MAX_BUDDY_PAGE_NUM - 1;  //第一个page设置为2的几次方个page
             }
             else
             {
-                pg->order = -1;
+                pg->order = -1;  //其余标记为-1
             }
             list_add_tail(&(pg->list), &page_buddy[MAX_BUDDY_PAGE_NUM - 1]);
             /*the remainder not enough to merge into a max buddy is done as min buddy*/
