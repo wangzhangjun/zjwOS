@@ -2,7 +2,7 @@
 .code 32
 .align 0
 
-.global _start
+.global _start  /*global表示其他的文件可以看到*/
 .extern __vector_reset
 .extern __vector_undefined
 .extern __vector_swi
