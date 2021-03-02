@@ -9,6 +9,7 @@
 
 .equ MEM_SIZE, 		0x800000
 .equ TEXT_BASE,		0x30000000
+/*从这里开始表明，异常模式的堆栈式放在了8M内存的最后面*/
 .equ _SVC_STACK,	(TEXT_BASE+MEM_SIZE-4)  /*4字节对齐，所以减去4*/
 .equ _IRQ_STACK,	(_SVC_STACK-0x400)      /*0x400是1k的大小，也就是每个栈都是1k的大小*/
 .equ _FIQ_STACK,	(_IRQ_STACK-0x400)
