@@ -84,23 +84,23 @@ static inline int list_empty(const struct list_head *head)
 #define list_for_each(pos, head) \
     for (pos = (head)->next; pos != (head); pos = pos->next)
 
-#define _MEM_END 0x30700000
-#define _MEM_START 0x300f0000
+#define _MEM_END 0x30700000   //页表最后的起始地址，这个地址往上的一段空间作为伙伴算法
+#define _MEM_START 0x300f0000   //操作系统运行时的大小小于f0000
 
 #define PAGE_SHIFT (12)
-#define PAGE_SIZE (1 << PAGE_SHIFT)
+#define PAGE_SIZE (1 << PAGE_SHIFT)  //页的大小是4k，1左移12位
 #define PAGE_MASK (~(PAGE_SIZE - 1))
 
 #define KERNEL_MEM_END (_MEM_END)
 /*the bigin and end of the kernel mem which is needed to be paged.*/
-#define KERNEL_PAGING_START ((_MEM_START + (~PAGE_MASK)) & ((PAGE_MASK)))
-#define KERNEL_PAGING_END (((KERNEL_MEM_END - KERNEL_PAGING_START) / (PAGE_SIZE + sizeof(struct page))) * (PAGE_SIZE) + KERNEL_PAGING_START)
+#define KERNEL_PAGING_START ((_MEM_START + (~PAGE_MASK)) & ((PAGE_MASK))) //_MEM_START的值按照PAGE_SIZE对齐，不对齐则取整
+#define KERNEL_PAGING_END (((KERNEL_MEM_END - KERNEL_PAGING_START) / (PAGE_SIZE + sizeof(struct page))) * (PAGE_SIZE) + KERNEL_PAGING_START)  //所有页的结束位置
 
 /*page number in need */
-#define KERNEL_PAGE_NUM ((KERNEL_PAGING_END - KERNEL_PAGING_START) / PAGE_SIZE)
+#define KERNEL_PAGE_NUM ((KERNEL_PAGING_END - KERNEL_PAGING_START) / PAGE_SIZE)  //页是多少个
 /*the start and end of the page structure should be storaged in.*/
-#define KERNEL_PAGE_END _MEM_END
-#define KERNEL_PAGE_START (KERNEL_PAGE_END - KERNEL_PAGE_NUM * sizeof(struct page))
+#define KERNEL_PAGE_END _MEM_END   //struct page的结束的地方就是_MEM_END
+#define KERNEL_PAGE_START (KERNEL_PAGE_END - KERNEL_PAGE_NUM * sizeof(struct page))  //存放struct page结构体的开始的地方
 
 /*page flags*/
 #define PAGE_AVAILABLE 0x00
