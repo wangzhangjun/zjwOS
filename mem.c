@@ -162,9 +162,9 @@ void init_page_map(void)
     int i;
     struct page *pg = (struct page *)KERNEL_PAGE_START;
     init_page_buddy();
-    printk("KERNEL_PAGE_NUM:%d\n", KERNEL_PAGE_NUM);  //1541
-    printk("PAGE_NUM_FOR_MAX_BUDDY:%d\n", ~PAGE_NUM_FOR_MAX_BUDDY);
-    printk("page_buddy[8]中的page个数:%d\n", (KERNEL_PAGE_NUM & (~PAGE_NUM_FOR_MAX_BUDDY))); //1536, 这个数字的含义是，1541/256,即256（2的8次方）是一个buddy，一共可以分到1526就不够了
+    // printk("KERNEL_PAGE_NUM:%d\n", KERNEL_PAGE_NUM);  //1541
+    // printk("PAGE_NUM_FOR_MAX_BUDDY:%d\n", ~PAGE_NUM_FOR_MAX_BUDDY);
+    // printk("page_buddy[8]中的page个数:%d\n", (KERNEL_PAGE_NUM & (~PAGE_NUM_FOR_MAX_BUDDY))); //1536, 这个数字的含义是，1541/256,即256（2的8次方）是一个buddy，一共可以分到1526就不够了
     for (i = 0; i < (KERNEL_PAGE_NUM); pg++, i++)
     {
         /*fill struct page first*/
