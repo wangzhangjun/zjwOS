@@ -10,7 +10,7 @@
 #define PTE_L1_SECTION_PADDR_BASE_MASK (0xfff00000)
 #define PTE_BITS_L1_SECTION (0x2)
 
-#define L1_PTR_BASE_ADDR 0x30700000
+#define L1_PTR_BASE_ADDR 0x30700000 //页表的基地址是从0x30700000开始，在我们8M的最后
 
 //物理地址映射，把0x30000000开始到8M的位置映射到虚拟的0x30000000到8M的地址
 #define PHYSICAL_MEM_ADDR 0x30000000
@@ -64,11 +64,11 @@ void init_sys_mmu(void)
     //for interrupt
     for (j = 0; j < MEM_MAP_SIZE >> 20; j++)
     {
-        pte = gen_l1_pte(PHYSICAL_VECTOR_ADDR + (j << 20));
+        pte = gen_l1_pte(PHYSICAL_VECTOR_ADDR + (j << 20));  //返回段页表项的内容
         pte |= PTE_ALL_AP_L1_SECTION_DEFAULT;
         pte |= PTE_L1_SECTION_NO_CACHE_AND_WB;
         pte |= PTE_L1_SECTION_DOMAIN_DEFAULT;
-        pte_addr = gen_l1_pte_addr(L1_PTR_BASE_ADDR, VIRTUAL_VECTOR_ADDR + (j << 20));
+        pte_addr = gen_l1_pte_addr(L1_PTR_BASE_ADDR, VIRTUAL_VECTOR_ADDR + (j << 20)); //通过段页表的基地址与虚拟地址产生该段页表项的物理地址
         *(volatile unsigned int *)pte_addr = pte;
     }
 
