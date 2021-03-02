@@ -1,8 +1,8 @@
-#define INT_BASE (0xca000000)
-#define INTMSK (INT_BASE + 0x8)
-#define INTOFFSET (INT_BASE + 0x14)
-#define INTPND (INT_BASE + 0x10)
-#define SRCPND (INT_BASE + 0x0)
+#define INT_BASE (0xca000000)   //经过映射后的虚拟地址
+#define INTMSK (INT_BASE + 0x8) //中断控制器中的寄存器地址是定死的
+#define INTOFFSET (INT_BASE + 0x14) //中断控制器中的寄存器地址是定死的
+#define INTPND (INT_BASE + 0x10)    //中断控制器中的寄存器地址是定死的
+#define SRCPND (INT_BASE + 0x0)     //中断控制器中的寄存器地址是定死的
 
 extern void printk(const char *fmt, ...);
 
