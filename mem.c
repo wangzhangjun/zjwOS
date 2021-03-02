@@ -137,7 +137,7 @@ struct page
 
 struct list_head page_buddy[MAX_BUDDY_PAGE_NUM];  //每一组都用list_head的双向链表连接起来
 
-struct page *virt_to_page(unsigned int addr)
+struct page *virt_to_page(unsigned int addr) //内存地址和 struct page 结构体之间的转换
 {
     unsigned int i;
     i = ((addr)-KERNEL_PAGING_START) >> PAGE_SHIFT;
@@ -197,19 +197,30 @@ void init_page_map(void)
     }
 }
 
-/*we can do these all because the page structure that represents one page aera is continuous*/
-#define BUDDY_END(x, order) ((x) + (1 << (order)) - 1)
+/* we can do these all because the page structure that represents one page aera is continuous */
+#define BUDDY_END(x, order) ((x) + (1 << (order)) - 1)  //x是一个page的地址，然后往后跳几个，跳到第一个buddy的末尾，比如2的2次方，list_entry得到的是第一个Buddy中的第一个page的值，那要想得到第一个buddy中的最后一个page的值，就是加上2的2次方减1
 #define NEXT_BUDDY_START(x, order) ((x) + (1 << (order)))
 #define PREV_BUDDY_START(x, order) ((x) - (1 << (order)))
 
 /*the logic of this function seems good,no bug reported yet*/
+/*
+struct page
+{
+    unsigned int vaddr;
+    unsigned int flags;
+    int order;
+    unsigned int counter;
+    struct kmem_cache *cachep;
+    struct list_head list; //to string the buddy member
+};
+*/
 struct page *get_pages_from_list(int order)
 {
     unsigned int vaddr;
     int neworder = order;
     struct page *pg, *ret;
     struct list_head *tlst, *tlst1;
-    for (; neworder < MAX_BUDDY_PAGE_NUM; neworder++)
+    for (; neworder < MAX_BUDDY_PAGE_NUM/*9*/; neworder++)
     {
         if (list_empty(&page_buddy[neworder]))
         {
@@ -218,8 +229,8 @@ struct page *get_pages_from_list(int order)
         else
         {
             pg = list_entry(page_buddy[neworder].next, struct page, list);
-            tlst = &(BUDDY_END(pg, neworder)->list);
-            tlst->next->prev = &page_buddy[neworder];
+            tlst = &(BUDDY_END(pg, neworder)->list);  //找到的这个buddy的最后一个page的->list的地址
+            tlst->next->prev = &page_buddy[neworder];  //这两句的意思是把找到的buddy拆下来，前后再接上
             page_buddy[neworder].next = tlst->next;
             goto OUT_OK;
         }
@@ -227,10 +238,10 @@ struct page *get_pages_from_list(int order)
     return NULL;
 
 OUT_OK:
-    for (neworder--; neworder >= order; neworder--)
+    for (neworder--; neworder >= order; neworder--)  //从实际请求的buddy数减一开始，减到用户请求的buddy阶数。例如请求3，但是在5的链中才找到，那么就要从4开始循环，到3结束
     {
 
-        tlst1 = &(BUDDY_END(pg, neworder)->list);
+        tlst1 = &(BUDDY_END(pg, neworder)->list);  //巧妙啊
         tlst = &(pg->list);
 
         pg = NEXT_BUDDY_START(pg, neworder);
@@ -292,16 +303,16 @@ void *page_address(struct page *pg)
     return (void *)(pg->vaddr);
 }
 
-struct page *alloc_pages(unsigned int flag, int order)
+struct page *alloc_pages(unsigned int flag, int order)  //flag参数只是保留
 {
     struct page *pg;
     int i;
     pg = get_pages_from_list(order);
     if (pg == NULL)
         return NULL;
-    for (i = 0; i < (1 << order); i++)
+    for (i = 0; i < (1 << order); i++) //将分配得到的每一个页都至为PAGE_DIRTY
     {
-        (pg + i)->flags |= PAGE_DIRTY;
+        (pg + i)->flags |= PAGE_DIRTY;  
     }
     return pg;
 }
@@ -322,7 +333,7 @@ void *get_free_pages(unsigned int flag, int order)
     page = alloc_pages(flag, order);
     if (!page)
         return NULL;
-    return page_address(page);
+    return page_address(page);  //得到内存块的首地址，一一映射的虚拟到物理地址
 }
 
 void put_free_pages(void *addr, int order)
