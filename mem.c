@@ -130,12 +130,12 @@ struct page
     struct list_head list; //to string the buddy member
 };
 
-#define MAX_BUDDY_PAGE_NUM (9) //finally I desided to choose a fixed value,which means users could alloc 1M space at most,those who need more than 1M should change the macro to reserve enough space for private use.
+#define MAX_BUDDY_PAGE_NUM (9) //所有不同大小的buddy的个数,2的0次方一直到2的8次方，允许我们最大申请256个页， 即1M内存
 
 #define AVERAGE_PAGE_NUM_PER_BUDDY (KERNEL_PAGE_NUM / MAX_BUDDY_PAGE_NUM)
 #define PAGE_NUM_FOR_MAX_BUDDY ((1 << MAX_BUDDY_PAGE_NUM) - 1)
 
-struct list_head page_buddy[MAX_BUDDY_PAGE_NUM];
+struct list_head page_buddy[MAX_BUDDY_PAGE_NUM];  //每一组都用list_head的双向链表连接起来
 
 struct page *virt_to_page(unsigned int addr)
 {
@@ -146,6 +146,7 @@ struct page *virt_to_page(unsigned int addr)
     return (struct page *)KERNEL_PAGE_START + i;
 }
 
+//初始化所有的buddy数组
 void init_page_buddy(void)
 {
     int i;
@@ -155,6 +156,7 @@ void init_page_buddy(void)
     }
 }
 
+//各个buddy的初始化
 void init_page_map(void)
 {
     int i;
