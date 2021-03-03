@@ -178,7 +178,7 @@ void init_page_map(void)
         {
             // printk("in if buddy :%d\n", MAX_BUDDY_PAGE_NUM - 1);  //一直都是8
             /*the following code should be dealt carefully,we would change the order field of a head struct page to the corresponding order,and change others to -1*/
-            if ((i & PAGE_NUM_FOR_MAX_BUDDY) == 0) //i & 511(111111111) ,只有当i为0的时候，整个才为0，0也表示第一个page的分配
+            if ((i & PAGE_NUM_FOR_MAX_BUDDY) == 0) //i & 511(1111 1111 1) ,每511个一次循环的第一个是0，即每个page组的第一个struct page设置为阶数
             {
                 pg->order = MAX_BUDDY_PAGE_NUM - 1;  //第一个page设置为2的几次方个page
             }
